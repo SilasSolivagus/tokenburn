@@ -18,20 +18,31 @@ export interface WasteDetection {
   message: string
   detail: string
   suggestion: string
+  fix?: string
 }
 
 export type RuleFn = (filter: QueryFilter) => WasteDetection | null
 
-const ALL_RULES: RuleFn[] = [
-  duplicateRequests,
-  modelOveruse,
-  contextExplosion,
-  lowCacheHit,
-  truncationWaste,
-  idleChat,
-  lateNight,
-  retryStorm,
+export interface RuleEntry {
+  name: string
+  description: string
+  fn: RuleFn
+}
+
+const ALL_RULES: RuleEntry[] = [
+  { name: 'duplicate-requests', description: 'Detect repeated identical prompts', fn: duplicateRequests },
+  { name: 'model-overuse', description: 'Expensive models for short outputs', fn: modelOveruse },
+  { name: 'context-explosion', description: 'Too many requests with >100k input tokens', fn: contextExplosion },
+  { name: 'low-cache-hit', description: 'Cache hit rate below 10%', fn: lowCacheHit },
+  { name: 'truncation-waste', description: 'Responses truncated by max_tokens', fn: truncationWaste },
+  { name: 'idle-chat', description: '3+ turns without tool use', fn: idleChat },
+  { name: 'late-night', description: 'Requests between 1-5am', fn: lateNight },
+  { name: 'retry-storm', description: 'Rapid retries within 5 seconds', fn: retryStorm },
 ]
+
+export function listRules(): RuleEntry[] {
+  return ALL_RULES
+}
 
 const SEVERITY_ORDER: Record<Severity, number> = {
   high: 0,
@@ -40,10 +51,11 @@ const SEVERITY_ORDER: Record<Severity, number> = {
   info: 3,
 }
 
-export function runAllRules(filter: QueryFilter): WasteDetection[] {
+export function runAllRules(filter: QueryFilter, disabledRules: string[] = []): WasteDetection[] {
   const results: WasteDetection[] = []
-  for (const rule of ALL_RULES) {
-    const detection = rule(filter)
+  for (const entry of ALL_RULES) {
+    if (disabledRules.includes(entry.name)) continue
+    const detection = entry.fn(filter)
     if (detection !== null) {
       results.push(detection)
     }
