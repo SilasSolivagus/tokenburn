@@ -18,6 +18,7 @@ import { summarize, aggregateByModel } from './analyzer/analyzer.js'
 import { runAllRules } from './analyzer/rules/index.js'
 import { renderSummary, renderByModel } from './reporter/report.js'
 import { loadConfig } from './config.js'
+import { isFirstRun, runOnboarding } from './onboarding.js'
 
 const program = new Command()
 program.name('tokenburn').description('🔥 htop for your AI spending').version('0.2.0')
@@ -34,7 +35,15 @@ program.addCommand(dashboardCommand)
 program.addCommand(configCommand)
 
 // Default action when no subcommand given
-program.action(() => {
+program.action(async () => {
+  let config
+
+  if (isFirstRun()) {
+    config = await runOnboarding()
+  } else {
+    config = loadConfig()
+  }
+
   getDb()
   const result = importLogs()
   if (result.imported > 0) {
@@ -58,7 +67,6 @@ program.action(() => {
     return
   }
 
-  const config = loadConfig()
   process.stdout.write(renderSummary(summary, 'Today', config))
   process.stdout.write(renderByModel(aggregateByModel(filter)))
 

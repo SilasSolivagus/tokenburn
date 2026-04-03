@@ -27,6 +27,10 @@ export function loadConfig(): TokenburnConfig {
   }
 }
 
+export function configExists(): boolean {
+  return fs.existsSync(getConfigPath())
+}
+
 export function saveConfig(config: TokenburnConfig): void {
   const dir = path.dirname(getConfigPath())
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
