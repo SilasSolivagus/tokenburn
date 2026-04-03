@@ -117,6 +117,40 @@ tokenburn optimize --simulate --model claude-haiku-4-5
 tokenburn optimize --apply        # Auto-apply fixes to CLAUDE.md
 ```
 
+### MCP Server
+
+Let your AI agent monitor its own spending in real-time:
+
+```bash
+tokenburn mcp    # Start MCP server (stdio)
+```
+
+Register in Claude Code:
+```json
+{ "mcpServers": { "tokenburn": { "command": "tokenburn", "args": ["mcp"] } } }
+```
+
+Available tools: `get_spending`, `get_waste`, `get_suggestion`, `get_tree`
+
+### Web Dashboard
+
+```bash
+tokenburn dashboard    # Opens http://localhost:10812
+```
+
+### Custom Rules
+
+Create `~/.tokenburn/rules.yaml`:
+
+```yaml
+rules:
+  - name: expensive-alert
+    condition: "costUSD > 5"
+    severity: high
+    message: "Request exceeded $5"
+    suggestion: "Break into smaller tasks"
+```
+
 ## Supported Tools
 
 Works with any tool that uses `ANTHROPIC_BASE_URL` or `OPENAI_BASE_URL`:
