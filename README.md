@@ -45,6 +45,27 @@ tokenburn scan
 tokenburn live
 ```
 
+## Zero Config
+
+tokenburn reads Claude Code's local logs automatically. No proxy needed for basic usage:
+
+```bash
+# Just run it — auto-imports logs and shows today's report
+tokenburn
+
+# Import with time filter
+tokenburn import --since 7d
+```
+
+### Want to track Cursor, aider, or other tools?
+
+Start the proxy for universal coverage:
+
+```bash
+tokenburn proxy start -d
+eval $(tokenburn proxy env)
+```
+
 ## How It Works
 
 tokenburn runs a transparent local proxy that intercepts API calls to Anthropic and OpenAI. It records token usage and costs in a local SQLite database, then analyzes patterns to find waste.
