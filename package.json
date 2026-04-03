@@ -13,6 +13,11 @@
     "test:watch": "vitest"
   },
   "license": "MIT",
+  "files": ["dist", "LICENSE", "README.md"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/tokenburn"
+  },
   "keywords": ["ai", "llm", "cost", "token", "claude", "openai", "cli"],
   "dependencies": {
     "better-sqlite3": "^12.8.0",

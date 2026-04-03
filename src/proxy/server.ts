@@ -31,6 +31,7 @@ export async function startProxy(config?: ProxyConfig): Promise<void> {
       }
     })
   })
+  server.keepAliveTimeout = 0
 
   await new Promise<void>((resolve) => {
     server!.listen(port, resolve)
@@ -40,6 +41,7 @@ export async function startProxy(config?: ProxyConfig): Promise<void> {
 
 export async function stopProxy(): Promise<void> {
   if (!server) return
+  server.closeIdleConnections?.()
   await new Promise<void>((resolve) => {
     server!.close(() => resolve())
   })
@@ -125,6 +127,7 @@ async function handleRequest(
     if (['transfer-encoding', 'connection'].includes(key.toLowerCase())) return
     responseHeaders[key] = value
   })
+  responseHeaders['connection'] = 'close'
 
   res.writeHead(upstreamResponse.status, responseHeaders)
 
