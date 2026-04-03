@@ -2,7 +2,7 @@ import Database from 'better-sqlite3'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import { CREATE_TABLE_SQL, type RequestRecord } from './schema.js'
+import { CREATE_TABLE_SQL, MIGRATION_V2_SQL, type RequestRecord } from './schema.js'
 
 export interface QueryFilter {
   since?: number
@@ -31,8 +31,23 @@ export function getDb(dbPath?: string): Database.Database {
   db = new Database(resolvedPath)
   db.pragma('journal_mode = WAL')
   db.exec(CREATE_TABLE_SQL)
+  runMigrations(db)
 
   return db
+}
+
+function runMigrations(database: Database.Database): void {
+  const columns = database.pragma('table_info(requests)') as Array<{ name: string }>
+  const columnNames = new Set(columns.map(c => c.name))
+
+  if (!columnNames.has('sessionId')) {
+    database.exec(`ALTER TABLE requests ADD COLUMN sessionId TEXT NOT NULL DEFAULT ''`)
+  }
+  if (!columnNames.has('projectPath')) {
+    database.exec(`ALTER TABLE requests ADD COLUMN projectPath TEXT NOT NULL DEFAULT ''`)
+  }
+
+  database.exec(MIGRATION_V2_SQL)
 }
 
 export function closeDb(): void {
@@ -48,11 +63,13 @@ export function insertRequest(record: RequestRecord): void {
     INSERT OR REPLACE INTO requests (
       id, timestamp, provider, model, source,
       inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens,
-      costUSD, durationMs, promptHash, toolUse, stopReason
+      costUSD, durationMs, promptHash, toolUse, stopReason,
+      sessionId, projectPath
     ) VALUES (
       @id, @timestamp, @provider, @model, @source,
       @inputTokens, @outputTokens, @cacheReadTokens, @cacheWriteTokens,
-      @costUSD, @durationMs, @promptHash, @toolUse, @stopReason
+      @costUSD, @durationMs, @promptHash, @toolUse, @stopReason,
+      @sessionId, @projectPath
     )
   `)
   stmt.run(record)

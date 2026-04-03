@@ -33,6 +33,8 @@ describe('database', () => {
       promptHash: 'abc123',
       toolUse: JSON.stringify(['Read', 'Bash']),
       stopReason: 'end_turn',
+      sessionId: '',
+      projectPath: '',
     }
 
     insertRequest(record)
@@ -70,6 +72,7 @@ function makeRecord(id: string, timestamp: number, overrides: Partial<RequestRec
     inputTokens: 1000, outputTokens: 200, cacheReadTokens: 0, cacheWriteTokens: 0,
     costUSD: 0.01, durationMs: 500, promptHash: `hash-${id}`,
     toolUse: '[]', stopReason: 'end_turn',
+    sessionId: '', projectPath: '',
     ...overrides,
   }
 }

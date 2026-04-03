@@ -29,6 +29,8 @@ function makeRecord(id: string, overrides: Partial<RequestRecord> = {}): Request
     promptHash: `hash-${id}`,
     toolUse: '[]',
     stopReason: 'end_turn',
+    sessionId: '',
+    projectPath: '',
     ...overrides,
   }
 }

@@ -34,5 +34,7 @@ export function collectRequest(input: CollectInput): void {
     promptHash,
     toolUse: JSON.stringify(input.parsed.toolUse),
     stopReason: input.parsed.stopReason,
+    sessionId: '',
+    projectPath: '',
   })
 }
