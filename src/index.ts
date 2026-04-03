@@ -11,11 +11,13 @@ import { optimizeCommand } from './commands/optimize.js'
 import { treeCommand } from './commands/tree.js'
 import { mcpCommand } from './commands/mcp.js'
 import { dashboardCommand } from './commands/dashboard.js'
+import { configCommand } from './commands/config.js'
 import { getDb } from './db/db.js'
 import { importLogs } from './logs/importer.js'
 import { summarize, aggregateByModel } from './analyzer/analyzer.js'
 import { runAllRules } from './analyzer/rules/index.js'
 import { renderSummary, renderByModel } from './reporter/report.js'
+import { loadConfig } from './config.js'
 
 const program = new Command()
 program.name('tokenburn').description('🔥 htop for your AI spending').version('0.2.0')
@@ -29,6 +31,7 @@ program.addCommand(optimizeCommand)
 program.addCommand(treeCommand)
 program.addCommand(mcpCommand)
 program.addCommand(dashboardCommand)
+program.addCommand(configCommand)
 
 // Default action when no subcommand given
 program.action(() => {
@@ -55,14 +58,19 @@ program.action(() => {
     return
   }
 
-  process.stdout.write(renderSummary(summary, 'Today'))
+  const config = loadConfig()
+  process.stdout.write(renderSummary(summary, 'Today', config))
   process.stdout.write(renderByModel(aggregateByModel(filter)))
 
   const wasteFilter = { since: Date.now() - 7 * 86400000 }
   const detections = runAllRules(wasteFilter)
   if (detections.length > 0) {
-    const totalWaste = detections.reduce((s, d) => s + d.wastedUSD, 0)
-    console.log(chalk.yellow(`  ⚠ ${detections.length} waste patterns detected (~$${totalWaste.toFixed(2)}/week) — run \`tokenburn scan\` for details`))
+    if (config.mode === 'subscription') {
+      console.log(chalk.yellow(`  ⚠ ${detections.length} inefficiency patterns detected — run \`tokenburn scan\` for details`))
+    } else {
+      const totalWaste = detections.reduce((s, d) => s + d.wastedUSD, 0)
+      console.log(chalk.yellow(`  ⚠ ${detections.length} waste patterns detected (~$${totalWaste.toFixed(2)}/week) — run \`tokenburn scan\` for details`))
+    }
     console.log('')
   }
 })

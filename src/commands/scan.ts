@@ -7,6 +7,7 @@ import type { Severity } from '../analyzer/rules/index.js'
 import { loadCustomRules, runCustomRules } from '../analyzer/rules/custom.js'
 import { renderScan } from '../reporter/scan.js'
 import { applyFixToClaudeMd, promptForFix } from '../analyzer/fix-applier.js'
+import { loadConfig } from '../config.js'
 
 function parsePeriod(period: string): number {
   const match = period.match(/^(\d+(?:\.\d+)?)([hdwm])$/)
@@ -60,7 +61,8 @@ export const scanCommand = new Command('scan')
       return
     }
 
-    process.stdout.write(renderScan(detections, summary.totalCost))
+    const config = loadConfig()
+    process.stdout.write(renderScan(detections, summary.totalCost, config))
 
     if (opts.fix) {
       let applied = 0

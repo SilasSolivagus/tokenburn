@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { summarize, aggregateByModel, aggregateBySource, aggregateByDay, aggregateByHour, aggregateBySession, calculatePlanValue } from '../analyzer/analyzer.js'
 import { renderSummary, renderByModel, renderBySource, renderByDay, renderByHour, renderBySession, renderPlanValue } from '../reporter/report.js'
+import { loadConfig } from '../config.js'
 
 function parsePeriod(period: string): number {
   const match = period.match(/^(\d+(?:\.\d+)?)([hdwm])$/)
@@ -52,7 +53,8 @@ export const reportCommand = new Command('report')
       return
     }
 
-    process.stdout.write(renderSummary(summary, label))
+    const config = loadConfig()
+    process.stdout.write(renderSummary(summary, label, config))
 
     if (opts.by === 'model' || !opts.by) {
       process.stdout.write(renderByModel(aggregateByModel(filter)))

@@ -1,8 +1,31 @@
 import Table from 'cli-table3'
 import type { Summary, ModelAgg, SourceAgg, DayAgg, HourAgg, SessionAgg, PlanValue } from '../analyzer/analyzer.js'
 import { formatCost, formatTokens, formatDuration, header, dim } from './format.js'
+import type { TokenburnConfig } from '../config.js'
 
-export function renderSummary(summary: Summary, label: string): string {
+export function renderSummary(summary: Summary, label: string, config?: TokenburnConfig): string {
+  const mode = config?.mode ?? 'subscription'
+  const planPrice = config?.planPrice ?? 200
+
+  if (mode === 'subscription') {
+    const multiplier = planPrice > 0 && summary.totalCost > 0 ? summary.totalCost / planPrice : 0
+    const multiplierStr = multiplier > 0 ? ` (${multiplier.toFixed(1)}x value ✓)` : ''
+    const lines = [
+      '',
+      header(`📊 Summary — ${label}`),
+      '',
+      `  API equivalent:   ${formatCost(summary.totalCost)}`,
+      `  Your plan:        $${planPrice}/mo${multiplierStr}`,
+      `  Total requests:   ${summary.totalRequests.toLocaleString()}`,
+      `  Avg cost/request: ${formatCost(summary.avgCostPerRequest)}`,
+      `  Input tokens:     ${formatTokens(summary.totalInputTokens)}`,
+      `  Output tokens:    ${formatTokens(summary.totalOutputTokens)}`,
+      `  Cache read:       ${formatTokens(summary.totalCacheReadTokens)}`,
+      '',
+    ]
+    return lines.join('\n')
+  }
+
   const lines = [
     '',
     header(`📊 Summary — ${label}`),
