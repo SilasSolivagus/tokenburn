@@ -54,6 +54,10 @@ export function importLogs(logDirs?: string[], sinceMs: number = 0): ImportResul
           toolUse: JSON.stringify(entry.toolUse), stopReason: entry.stopReason,
           sessionId: entry.sessionId, projectPath,
         })
+        db.prepare(`INSERT OR REPLACE INTO agent_tree (uuid, sessionId, parentUuid, role, timestamp, inputTokens, outputTokens, costUSD, toolUse)
+          VALUES (?, ?, ?, 'assistant', ?, ?, ?, ?, ?)`)
+          .run(entry.uuid, entry.sessionId, entry.parentUuid, entry.timestamp,
+               entry.inputTokens, entry.outputTokens, costUSD, JSON.stringify(entry.toolUse))
         imported++
       }
       // Update import state
