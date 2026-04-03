@@ -40,5 +40,6 @@ export const retryStorm: RuleFn = (filter: QueryFilter): WasteDetection | null =
     message: `${rows.length} retry storm(s) detected: ${totalRetryRequests} redundant request(s) within 5s`,
     detail: `Found ${rows.length} prompt hash(es) sent ${MIN_RETRIES}+ times within ${TIME_WINDOW_MS}ms — likely client-side retry loops. Wasted $${wastedUSD.toFixed(4)}.`,
     suggestion: 'Add exponential backoff with jitter. Use a circuit breaker to avoid thundering herd retries.',
+    fix: '# Tip: Add exponential backoff to API retry logic. Check for rate limit errors before retrying.',
   }
 }

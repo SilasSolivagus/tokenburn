@@ -33,5 +33,6 @@ export const lowCacheHit: RuleFn = (filter: QueryFilter): WasteDetection | null 
     message: `Cache hit rate is ${(cacheHitRate * 100).toFixed(1)}% (below ${CACHE_HIT_THRESHOLD * 100}% threshold)`,
     detail: `Only ${row.totalCacheRead.toLocaleString()} of ${row.totalInput.toLocaleString()} input tokens were served from cache (${(cacheHitRate * 100).toFixed(1)}%). An estimated ${(SAVINGS_RATE * 100).toFixed(0)}% savings is possible.`,
     suggestion: 'Enable prompt caching for system prompts and repeated context blocks.',
+    fix: '# Tip: Keep your system prompt and CLAUDE.md stable across requests to maximize prompt caching.',
   }
 }

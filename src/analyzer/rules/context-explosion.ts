@@ -37,5 +37,6 @@ export const contextExplosion: RuleFn = (filter: QueryFilter): WasteDetection | 
     message: `${largeRow.cnt} request(s) (${(fraction * 100).toFixed(1)}%) have context >100k tokens`,
     detail: `${largeRow.cnt} of ${totalRow.total} requests exceed 100k input tokens (>${(PERCENT_THRESHOLD * 100).toFixed(0)}% threshold). These large contexts cost $${largeRow.cost.toFixed(4)} total.`,
     suggestion: 'Summarize or truncate conversation history. Use sliding windows or compaction strategies.',
+    fix: '# Add to CLAUDE.md:\nKeep context concise. Summarize long file contents instead of including them verbatim. Use targeted file reads instead of reading entire files.',
   }
 }

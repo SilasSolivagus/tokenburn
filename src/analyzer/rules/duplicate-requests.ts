@@ -36,5 +36,6 @@ export const duplicateRequests: RuleFn = (filter: QueryFilter): WasteDetection |
     message: `${totalDupeGroups} duplicate prompt group(s) detected (${totalDupeRequests} total requests)`,
     detail: `Found ${totalDupeGroups} prompt hash(es) sent 2+ times. The redundant calls wasted $${wastedUSD.toFixed(4)}.`,
     suggestion: 'Cache responses for identical prompts using a prompt cache or memoization layer.',
+    fix: '# Add to CLAUDE.md:\nAvoid re-reading files you have already read in this session. Use your memory of file contents instead of re-reading.',
   }
 }

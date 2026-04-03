@@ -55,5 +55,6 @@ export const idleChat: RuleFn = (filter: QueryFilter): WasteDetection | null => 
     message: `Idle chat streaks detected (3+ consecutive no-tool requests) costing $${wastedUSD.toFixed(4)}`,
     detail: `Found streak(s) of ${STREAK_THRESHOLD}+ consecutive requests with no tool usage, suggesting idle or exploratory conversation totaling $${wastedUSD.toFixed(4)}.`,
     suggestion: 'Consider batching exploratory queries or using a cheaper model for conversational turns.',
+    fix: '# Add to CLAUDE.md:\nAlways take action. Do not ask clarifying questions when you can make a reasonable assumption and proceed.',
   }
 }

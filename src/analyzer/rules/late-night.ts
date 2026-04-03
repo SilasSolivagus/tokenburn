@@ -23,5 +23,6 @@ export const lateNight: RuleFn = (filter: QueryFilter): WasteDetection | null =>
     message: `${row.cnt} request(s) made during off-hours (1am–5am local time)`,
     detail: `${row.cnt} requests were made between 1am and 5am local time, costing $${row.cost.toFixed(4)}. These may be automated jobs or overnight runs.`,
     suggestion: 'Review overnight automation for efficiency. Consider scheduling heavy jobs during off-peak times intentionally.',
+    fix: '# Tip: Set budget limits for unattended agent sessions. Consider using cheaper models for overnight work.',
   }
 }

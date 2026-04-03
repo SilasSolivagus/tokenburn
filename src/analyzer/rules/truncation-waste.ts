@@ -24,5 +24,6 @@ export const truncationWaste: RuleFn = (filter: QueryFilter): WasteDetection | n
     message: `${row.cnt} request(s) hit max_tokens limit (truncated output)`,
     detail: `${row.cnt} requests were cut off at the token limit (stopReason = 'max_tokens'), costing $${row.cost.toFixed(4)} total. Truncated responses may require retries.`,
     suggestion: 'Increase max_tokens limit or structure prompts to produce shorter outputs.',
+    fix: '# Add to CLAUDE.md:\nBreak complex tasks into smaller steps. Avoid generating very long responses in a single turn.',
   }
 }

@@ -41,5 +41,6 @@ export const modelOveruse: RuleFn = (filter: QueryFilter): WasteDetection | null
     message: `${overuseRows.length} expensive model request(s) with tiny outputs (<200 tokens)`,
     detail: `${overuseRows.length} request(s) used a premium model but produced fewer than 200 output tokens. Could have used ${CHEAP_MODEL} instead.`,
     suggestion: `Route short/simple requests to ${CHEAP_MODEL} to cut costs significantly.`,
+    fix: '# Add to CLAUDE.md:\nFor simple questions and short responses (under 200 tokens), prefer claude-haiku-4-5 or claude-sonnet-4-6 over claude-opus-4.',
   }
 }
