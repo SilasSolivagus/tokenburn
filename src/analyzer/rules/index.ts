@@ -16,6 +16,19 @@ import { largeFileReread } from './large-file-reread.js'
 import { concurrentWaste } from './concurrent-waste.js'
 import { lowTokenDensity } from './low-token-density.js'
 import { providerPriceGap } from './provider-price-gap.js'
+import { readHeavy } from './read-heavy.js'
+import { thinkHeavy } from './think-heavy.js'
+import { searchInefficient } from './search-inefficient.js'
+import { writeRewrite } from './write-rewrite.js'
+import { bashLoop } from './bash-loop.js'
+import { contextDrift } from './context-drift.js'
+import { noClaudemd } from './no-claudemd.js'
+import { deepAgentTree } from './deep-agent-tree.js'
+import { mcpTokenOverhead } from './mcp-token-overhead.js'
+import { sessionTooLong } from './session-too-long.js'
+import { planUnderuse } from './plan-underuse.js'
+import { planOveruse } from './plan-overuse.js'
+import { cheapestAvailable } from './cheapest-available.js'
 
 export type Severity = 'high' | 'medium' | 'low' | 'info'
 
@@ -56,6 +69,19 @@ const ALL_RULES: RuleEntry[] = [
   { name: 'concurrent-waste', description: 'Same prompt sent 2+ times in same second', fn: concurrentWaste },
   { name: 'low-token-density', description: 'High output with no tool use', fn: lowTokenDensity },
   { name: 'provider-price-gap', description: 'Provider cost difference >1.5x', fn: providerPriceGap },
+  { name: 'read-heavy', description: 'Read operations dominate token usage', fn: readHeavy },
+  { name: 'think-heavy', description: 'Agent producing lots of output without acting', fn: thinkHeavy },
+  { name: 'search-inefficient', description: 'Many search operations', fn: searchInefficient },
+  { name: 'write-rewrite', description: 'Session with 3+ write operations', fn: writeRewrite },
+  { name: 'bash-loop', description: 'Session with >10 Bash calls', fn: bashLoop },
+  { name: 'context-drift', description: 'Input tokens grow across a session', fn: contextDrift },
+  { name: 'no-claudemd', description: 'No CLAUDE.md configuration detected', fn: noClaudemd },
+  { name: 'deep-agent-tree', description: 'Agent recursion depth > 5', fn: deepAgentTree },
+  { name: 'mcp-token-overhead', description: 'MCP server connection overhead', fn: mcpTokenOverhead },
+  { name: 'session-too-long', description: 'Session > 3 hours without split', fn: sessionTooLong },
+  { name: 'plan-underuse', description: 'Subscription plan underutilized', fn: planUnderuse },
+  { name: 'plan-overuse', description: 'API equivalent cost >> plan price', fn: planOveruse },
+  { name: 'cheapest-available', description: 'A cheaper model could handle the task', fn: cheapestAvailable },
 ]
 
 export function listRules(): RuleEntry[] {
