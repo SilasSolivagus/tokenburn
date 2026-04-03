@@ -1,5 +1,5 @@
-import { scanLogFiles, getDefaultLogDirs, extractProjectPath } from './scanner.js'
-import { parseJsonlFile, getFileSize } from './jsonl-parser.js'
+import { getInstalledAdapters } from './adapters/index.js'
+import type { ImportAdapter } from './adapters/types.js'
 import { getDb, insertRequest } from '../db/db.js'
 import { calculateCost } from '../pricing/cost.js'
 import crypto from 'crypto'
@@ -9,30 +9,32 @@ export interface ImportResult {
   imported: number
   skipped: number
   totalMessages: number
+  sources: string[]  // which adapters found data
 }
 
-export function importLogs(logDirs?: string[], sinceMs: number = 0): ImportResult {
-  const dirs = logDirs ?? getDefaultLogDirs()
+export function importLogs(adapters?: ImportAdapter[], sinceMs: number = 0): ImportResult {
+  const activeAdapters = adapters ?? getInstalledAdapters()
   const db = getDb()
   let filesScanned = 0, imported = 0, skipped = 0, totalMessages = 0
+  const sources: string[] = []
 
-  for (const dir of dirs) {
-    const files = scanLogFiles(dir)
+  for (const adapter of activeAdapters) {
+    const files = adapter.scan()
+    if (files.length > 0) sources.push(adapter.name)
+
     for (const filePath of files) {
       filesScanned++
-      // Check import_state for incremental import
       const state = db.prepare('SELECT lastOffset FROM import_state WHERE filePath = ?').get(filePath) as { lastOffset: number } | undefined
       const offset = state?.lastOffset ?? 0
-      const fileSize = getFileSize(filePath)
-      if (offset >= fileSize) continue // file hasn't grown
+      const fileSize = adapter.getFileSize(filePath)
+      if (offset >= fileSize) continue
 
-      const projectPath = extractProjectPath(filePath)
-      const entries = parseJsonlFile(filePath, offset)
+      const entries = adapter.parse(filePath, offset)
       totalMessages += entries.length
 
       for (const entry of entries) {
         if (sinceMs > 0 && entry.timestamp < sinceMs) { skipped++; continue }
-        const id = `jsonl-${entry.sessionId}-${entry.uuid}`
+        const id = `${adapter.name}-${entry.sessionId}-${entry.uuid}`
         const existing = db.prepare('SELECT id FROM requests WHERE id = ?').get(id)
         if (existing) { skipped++; continue }
 
@@ -47,23 +49,26 @@ export function importLogs(logDirs?: string[], sinceMs: number = 0): ImportResul
 
         insertRequest({
           id, timestamp: entry.timestamp, provider: 'anthropic', model,
-          source: 'claude-code',
+          source: adapter.name,
           inputTokens: entry.inputTokens, outputTokens: entry.outputTokens,
           cacheReadTokens: entry.cacheReadTokens, cacheWriteTokens: entry.cacheWriteTokens,
           costUSD, durationMs: 0, promptHash,
           toolUse: JSON.stringify(entry.toolUse), stopReason: entry.stopReason,
-          sessionId: entry.sessionId, projectPath,
+          sessionId: entry.sessionId, projectPath: entry.cwd,
         })
-        db.prepare(`INSERT OR REPLACE INTO agent_tree (uuid, sessionId, parentUuid, role, timestamp, inputTokens, outputTokens, costUSD, toolUse)
-          VALUES (?, ?, ?, 'assistant', ?, ?, ?, ?, ?)`)
-          .run(entry.uuid, entry.sessionId, entry.parentUuid, entry.timestamp,
-               entry.inputTokens, entry.outputTokens, costUSD, JSON.stringify(entry.toolUse))
+
+        if (entry.uuid && entry.sessionId) {
+          db.prepare(`INSERT OR REPLACE INTO agent_tree (uuid, sessionId, parentUuid, role, timestamp, inputTokens, outputTokens, costUSD, toolUse)
+            VALUES (?, ?, ?, 'assistant', ?, ?, ?, ?, ?)`)
+            .run(entry.uuid, entry.sessionId, entry.parentUuid, entry.timestamp,
+                 entry.inputTokens, entry.outputTokens, costUSD, JSON.stringify(entry.toolUse))
+        }
         imported++
       }
-      // Update import state
+
       db.prepare('INSERT OR REPLACE INTO import_state (filePath, lastOffset, lastTimestamp) VALUES (?, ?, ?)')
         .run(filePath, fileSize, Date.now())
     }
   }
-  return { filesScanned, imported, skipped, totalMessages }
+  return { filesScanned, imported, skipped, totalMessages, sources }
 }

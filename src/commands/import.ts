@@ -26,5 +26,8 @@ export const importCommand = new Command('import')
     console.log(chalk.bold(`  Scanned ${result.filesScanned} files`))
     console.log(chalk.green(`  Imported ${result.imported} new records`))
     if (result.skipped > 0) console.log(chalk.dim(`  Skipped ${result.skipped} (already imported or filtered)`))
+    if (result.sources.length > 0) {
+      console.log(chalk.dim(`  Sources: ${result.sources.join(', ')}`))
+    }
     console.log('')
   })

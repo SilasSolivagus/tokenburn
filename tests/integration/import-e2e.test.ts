@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { getDb, closeDb, queryRequests } from '../../src/db/db.js'
 import { importLogs } from '../../src/logs/importer.js'
+import { claudeCodeAdapterWithDirs } from '../../src/logs/adapters/claude-code.js'
 import { summarize, aggregateByModel } from '../../src/analyzer/analyzer.js'
 import fs from 'fs'
 import path from 'path'
@@ -55,7 +56,7 @@ describe('import e2e', () => {
     ]
     fs.writeFileSync(path.join(JSONL_DIR, 'session.jsonl'), lines.join('\n') + '\n')
 
-    const result = importLogs([TEST_LOG_DIR])
+    const result = importLogs([claudeCodeAdapterWithDirs([TEST_LOG_DIR])])
     expect(result.imported).toBe(3)
 
     const records = queryRequests({ since: 0 })

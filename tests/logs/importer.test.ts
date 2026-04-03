@@ -4,6 +4,7 @@ import path from 'path'
 import os from 'os'
 import { getDb, closeDb } from '../../src/db/db.js'
 import { importLogs } from '../../src/logs/importer.js'
+import { claudeCodeAdapterWithDirs } from '../../src/logs/adapters/claude-code.js'
 
 const TEST_DB = path.join(import.meta.dirname, 'importer-test.db')
 
@@ -80,7 +81,7 @@ describe('importLogs', () => {
     ]
     fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
 
-    importLogs([path.join(tmpDir, 'projects')])
+    importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     const db = getDb(TEST_DB)
     const records = db.prepare("SELECT * FROM requests WHERE source = 'claude-code'").all() as any[]
@@ -97,7 +98,7 @@ describe('importLogs', () => {
     ]
     fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
 
-    importLogs([path.join(tmpDir, 'projects')])
+    importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     const db = getDb(TEST_DB)
     const records = db.prepare('SELECT * FROM requests').all() as any[]
@@ -114,8 +115,8 @@ describe('importLogs', () => {
     ]
     fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
 
-    importLogs([path.join(tmpDir, 'projects')])
-    importLogs([path.join(tmpDir, 'projects')])
+    importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
+    importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     const db = getDb(TEST_DB)
     const records = db.prepare('SELECT * FROM requests').all() as any[]
@@ -130,7 +131,7 @@ describe('importLogs', () => {
     ]
     fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
 
-    importLogs([path.join(tmpDir, 'projects')])
+    importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     const db = getDb(TEST_DB)
     const state = db
@@ -150,14 +151,14 @@ describe('importLogs', () => {
     fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
 
     // First import
-    importLogs([path.join(tmpDir, 'projects')])
+    importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     // Append a new assistant line
     const newLine = assistantLine('u6', 'u5', 'sess-incr-1', '2026-04-03T10:00:25Z')
     fs.appendFileSync(sessionFile, newLine + '\n')
 
     // Second import — should only pick up the new line
-    const result = importLogs([path.join(tmpDir, 'projects')])
+    const result = importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     expect(result.imported).toBe(1)
 
@@ -175,11 +176,23 @@ describe('importLogs', () => {
     ]
     fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
 
-    const result = importLogs([path.join(tmpDir, 'projects')])
+    const result = importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
 
     expect(result.filesScanned).toBe(1)
     expect(result.imported).toBe(2)
     expect(result.skipped).toBe(0)
     expect(result.totalMessages).toBe(2) // only assistant messages are counted
+  })
+
+  it('returns sources in result', () => {
+    const sessionFile = path.join(tmpDir, 'projects', 'proj1', 'session.jsonl')
+    const lines = [
+      assistantLine('u2', 'u1', 'sess-sources-1', '2026-04-03T10:00:05Z'),
+    ]
+    fs.writeFileSync(sessionFile, lines.join('\n') + '\n')
+
+    const result = importLogs([claudeCodeAdapterWithDirs([path.join(tmpDir, 'projects')])])
+
+    expect(result.sources).toContain('claude-code')
   })
 })
