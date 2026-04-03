@@ -63,3 +63,32 @@ describe('proxy server', () => {
     expect(records[0].inputTokens).toBe(500)
   })
 })
+
+describe('full pipeline', () => {
+  it('proxy → collect → report → scan', async () => {
+    await startProxy({ port: PROXY_PORT, targets: { anthropic: 'http://localhost:19812' } })
+
+    // Send 5 identical requests (should trigger duplicate detection)
+    for (let i = 0; i < 5; i++) {
+      await fetch(`http://localhost:${PROXY_PORT}/anthropic/v1/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'claude-code/1.0.0' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: 'hello' }] }),
+      })
+    }
+
+    await new Promise((r) => setTimeout(r, 100))
+
+    const records = queryRequests({ since: 0 })
+    expect(records.length).toBe(5)
+
+    const { summarize } = await import('../../src/analyzer/analyzer.js')
+    const summary = summarize({ since: 0 })
+    expect(summary.totalRequests).toBe(5)
+
+    const { runAllRules } = await import('../../src/analyzer/rules/index.js')
+    const detections = runAllRules({ since: 0 })
+    const dup = detections.find((d: any) => d.rule === 'duplicate-requests')
+    expect(dup).toBeDefined()
+  })
+})
