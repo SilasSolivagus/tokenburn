@@ -1,6 +1,6 @@
 import { Command } from 'commander'
-import { summarize, aggregateByModel, aggregateBySource, aggregateByDay, aggregateByHour } from '../analyzer/analyzer.js'
-import { renderSummary, renderByModel, renderBySource, renderByDay, renderByHour } from '../reporter/report.js'
+import { summarize, aggregateByModel, aggregateBySource, aggregateByDay, aggregateByHour, aggregateBySession, calculatePlanValue } from '../analyzer/analyzer.js'
+import { renderSummary, renderByModel, renderBySource, renderByDay, renderByHour, renderBySession, renderPlanValue } from '../reporter/report.js'
 
 function parsePeriod(period: string): number {
   const match = period.match(/^(\d+(?:\.\d+)?)([hdwm])$/)
@@ -28,9 +28,10 @@ function periodLabel(period: string): string {
 export const reportCommand = new Command('report')
   .description('Show spending report')
   .option('--last <period>', 'Time period (e.g. 1d, 7d, 24h)', '1d')
-  .option('--by <dimension>', 'Breakdown dimension: model, source, day, hour')
+  .option('--by <dimension>', 'Breakdown dimension: model, source, day, hour, session')
+  .option('--plan <price>', 'Compare against subscription plan price (USD/month)')
   .option('--json', 'Output as JSON', false)
-  .action((opts: { last: string; by?: string; json: boolean }) => {
+  .action((opts: { last: string; by?: string; plan?: string; json: boolean }) => {
     const since = parsePeriod(opts.last)
     const filter = { since }
     const label = periodLabel(opts.last)
@@ -43,6 +44,7 @@ export const reportCommand = new Command('report')
       else if (opts.by === 'source') output.bySource = aggregateBySource(filter)
       else if (opts.by === 'day') output.byDay = aggregateByDay(filter)
       else if (opts.by === 'hour') output.byHour = aggregateByHour(filter)
+      else if (opts.by === 'session') output.bySession = aggregateBySession(filter)
       else {
         output.byModel = aggregateByModel(filter)
       }
@@ -63,5 +65,15 @@ export const reportCommand = new Command('report')
     }
     if (opts.by === 'hour') {
       process.stdout.write(renderByHour(aggregateByHour(filter)))
+    }
+    if (opts.by === 'session') {
+      process.stdout.write(renderBySession(aggregateBySession(filter)))
+    }
+    if (opts.plan) {
+      const planPrice = parseFloat(opts.plan)
+      if (!isNaN(planPrice) && planPrice > 0) {
+        const pv = calculatePlanValue({ since: Date.now() - 30 * 86400000 }, planPrice)
+        process.stdout.write(renderPlanValue(pv))
+      }
     }
   })

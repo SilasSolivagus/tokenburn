@@ -1,6 +1,6 @@
 import Table from 'cli-table3'
-import type { Summary, ModelAgg, SourceAgg, DayAgg, HourAgg } from '../analyzer/analyzer.js'
-import { formatCost, formatTokens, header, dim } from './format.js'
+import type { Summary, ModelAgg, SourceAgg, DayAgg, HourAgg, SessionAgg, PlanValue } from '../analyzer/analyzer.js'
+import { formatCost, formatTokens, formatDuration, header, dim } from './format.js'
 
 export function renderSummary(summary: Summary, label: string): string {
   const lines = [
@@ -60,6 +60,29 @@ export function renderBySource(rows: SourceAgg[]): string {
   }
 
   return [header('  By Source:'), '', table.toString(), ''].join('\n')
+}
+
+export function renderBySession(rows: SessionAgg[]): string {
+  if (rows.length === 0) return dim('  No session data.\n')
+  const table = new Table({
+    head: ['Session', 'Cost', 'Requests', 'Duration', 'Input', 'Output'],
+    style: { head: ['cyan'] },
+    colAligns: ['left', 'right', 'right', 'right', 'right', 'right'],
+  })
+  for (const row of rows.slice(0, 20)) {
+    const id = row.sessionId.length > 20 ? row.sessionId.slice(0, 20) + '…' : row.sessionId
+    table.push([id, formatCost(row.totalCost), row.requestCount.toLocaleString(), formatDuration(row.durationMs), formatTokens(row.totalInput), formatTokens(row.totalOutput)])
+  }
+  return [header('  By Session:'), '', table.toString(), ''].join('\n')
+}
+
+export function renderPlanValue(pv: PlanValue): string {
+  const lines = ['', header('  💡 Plan Value Analysis'), '',
+    `  Your plan:           ${formatCost(pv.planPriceUSD)}/mo`,
+    `  API equivalent:      ${formatCost(pv.apiEquivalentUSD)}/mo`,
+    `  Value multiplier:    ${pv.multiplier.toFixed(1)}x`, '',
+    `  ${pv.verdict}`, '']
+  return lines.join('\n')
 }
 
 const BAR_WIDTH = 30
