@@ -31,7 +31,7 @@ export function parseOpenAISSE(raw: string): ParsedResponse | null {
   let inputTokens = 0
   let outputTokens = 0
   let cacheReadTokens = 0
-  const cacheWriteTokens = 0
+  let cacheWriteTokens = 0
   let stopReason = ''
   const toolUse: string[] = []
 
