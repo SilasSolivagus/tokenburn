@@ -1,5 +1,5 @@
 {
-  "name": "tokenburn",
+  "name": "tokenburn-cli",
   "version": "0.1.0",
   "description": "htop for your AI spending",
   "type": "module",
