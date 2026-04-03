@@ -94,6 +94,29 @@ Your AI tool → localhost:10811 → tokenburn (record) → api.anthropic.com
 | `tokenburn live` | Real-time dashboard |
 | `tokenburn db export --csv` | Export raw data |
 
+### Waste Detection (30 rules)
+
+tokenburn scans for 30 waste patterns across 4 categories:
+
+- **Deep patterns**: duplicate requests, model overuse, retry storms, large file re-reads...
+- **Operation analysis**: read-heavy sessions, excessive bash loops, write-rewrite cycles...
+- **Context & config**: context drift, missing CLAUDE.md, deep agent trees...
+- **Value analysis**: plan underuse/overuse, cheaper model suggestions
+
+```bash
+tokenburn scan --fix              # Interactive fix mode
+tokenburn scan --rules            # List all 30 rules
+tokenburn scan --disable late-night,idle-chat
+```
+
+### Optimization
+
+```bash
+tokenburn optimize                # Get optimization plans
+tokenburn optimize --simulate --model claude-haiku-4-5
+tokenburn optimize --apply        # Auto-apply fixes to CLAUDE.md
+```
+
 ## Supported Tools
 
 Works with any tool that uses `ANTHROPIC_BASE_URL` or `OPENAI_BASE_URL`:
