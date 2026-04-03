@@ -16,7 +16,7 @@
   "files": ["dist", "LICENSE", "README.md"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/tokenburn"
+    "url": "https://github.com/SilasSolivagus/tokenburn"
   },
   "keywords": ["ai", "llm", "cost", "token", "claude", "openai", "cli"],
   "dependencies": {
