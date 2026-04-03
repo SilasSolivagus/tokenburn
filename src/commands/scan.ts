@@ -4,6 +4,7 @@ import { getDb } from '../db/db.js'
 import { summarize } from '../analyzer/analyzer.js'
 import { runAllRules, listRules } from '../analyzer/rules/index.js'
 import type { Severity } from '../analyzer/rules/index.js'
+import { loadCustomRules, runCustomRules } from '../analyzer/rules/custom.js'
 import { renderScan } from '../reporter/scan.js'
 import { applyFixToClaudeMd, promptForFix } from '../analyzer/fix-applier.js'
 
@@ -48,8 +49,10 @@ export const scanCommand = new Command('scan')
       process.exit(1)
     }
 
-    const allDetections = runAllRules(filter, disabled)
-    const detections = allDetections.filter(d => SEVERITY_LEVELS.indexOf(d.severity) <= minIndex)
+    const customRules = loadCustomRules()
+    const customDetections = runCustomRules(customRules, filter)
+    const combined = [...runAllRules(filter, disabled), ...customDetections]
+    const detections = combined.filter(d => SEVERITY_LEVELS.indexOf(d.severity) <= minIndex)
     const summary = summarize(filter)
 
     if (opts.json) {
