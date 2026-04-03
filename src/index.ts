@@ -7,6 +7,7 @@ import { scanCommand } from './commands/scan.js'
 import { liveCommand } from './commands/live.js'
 import { dbCommand } from './commands/db.js'
 import { importCommand } from './commands/import.js'
+import { optimizeCommand } from './commands/optimize.js'
 import { getDb } from './db/db.js'
 import { importLogs } from './logs/importer.js'
 import { summarize, aggregateByModel } from './analyzer/analyzer.js'
@@ -21,6 +22,7 @@ program.addCommand(scanCommand)
 program.addCommand(liveCommand)
 program.addCommand(dbCommand)
 program.addCommand(importCommand)
+program.addCommand(optimizeCommand)
 
 // Default action when no subcommand given
 program.action(() => {
