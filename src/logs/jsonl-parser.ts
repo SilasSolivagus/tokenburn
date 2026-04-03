@@ -33,10 +33,15 @@ export function parseJsonlFile(filePath: string, offset: number = 0): LogEntry[]
     if (!line.trim()) continue
     let raw: any
     try { raw = JSON.parse(line) } catch { continue }
-    if (raw.message?.role !== 'assistant' || !raw.usage) continue
+    // Support both formats:
+    // Old/test: { message: { role: "assistant" }, usage: { ... } }
+    // Real CC:  { type: "assistant", message: { role: "assistant", usage: { ... } } }
+    const isAssistant = raw.type === 'assistant' || raw.message?.role === 'assistant'
+    const usage = raw.message?.usage ?? raw.usage
+    if (!isAssistant || !usage) continue
 
     const toolUse: string[] = []
-    if (Array.isArray(raw.message.content)) {
+    if (Array.isArray(raw.message?.content)) {
       for (const block of raw.message.content) {
         if (block.type === 'tool_use' && block.name) toolUse.push(block.name)
       }
@@ -47,13 +52,13 @@ export function parseJsonlFile(filePath: string, offset: number = 0): LogEntry[]
       parentUuid: raw.parentUuid ?? null,
       sessionId: raw.sessionId ?? '',
       timestamp: raw.timestamp ? new Date(raw.timestamp).getTime() : 0,
-      model: raw.message.model ?? '',
-      inputTokens: raw.usage.input_tokens ?? 0,
-      outputTokens: raw.usage.output_tokens ?? 0,
-      cacheReadTokens: raw.usage.cache_read_input_tokens ?? 0,
-      cacheWriteTokens: raw.usage.cache_creation_input_tokens ?? 0,
+      model: raw.message?.model ?? '',
+      inputTokens: usage.input_tokens ?? 0,
+      outputTokens: usage.output_tokens ?? 0,
+      cacheReadTokens: usage.cache_read_input_tokens ?? 0,
+      cacheWriteTokens: usage.cache_creation_input_tokens ?? 0,
       toolUse,
-      stopReason: raw.stop_reason ?? '',
+      stopReason: raw.message?.stop_reason ?? raw.stop_reason ?? '',
       cwd: raw.cwd ?? '',
     })
   }
