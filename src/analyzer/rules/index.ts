@@ -7,6 +7,15 @@ import { truncationWaste } from './truncation-waste.js'
 import { idleChat } from './idle-chat.js'
 import { lateNight } from './late-night.js'
 import { retryStorm } from './retry-storm.js'
+import { giantRequest } from './giant-request.js'
+import { wastedOutput } from './wasted-output.js'
+import { modelSwitching } from './model-switching.js'
+import { longTailSession } from './long-tail-session.js'
+import { rejectedGeneration } from './rejected-generation.js'
+import { largeFileReread } from './large-file-reread.js'
+import { concurrentWaste } from './concurrent-waste.js'
+import { lowTokenDensity } from './low-token-density.js'
+import { providerPriceGap } from './provider-price-gap.js'
 
 export type Severity = 'high' | 'medium' | 'low' | 'info'
 
@@ -38,6 +47,15 @@ const ALL_RULES: RuleEntry[] = [
   { name: 'idle-chat', description: '3+ turns without tool use', fn: idleChat },
   { name: 'late-night', description: 'Requests between 1-5am', fn: lateNight },
   { name: 'retry-storm', description: 'Rapid retries within 5 seconds', fn: retryStorm },
+  { name: 'giant-request', description: 'Single requests costing >$2', fn: giantRequest },
+  { name: 'wasted-output', description: 'Tool calls with redundant long output text', fn: wastedOutput },
+  { name: 'model-switching', description: 'Sessions switching between 3+ models', fn: modelSwitching },
+  { name: 'long-tail-session', description: 'Sessions lasting >2 hours', fn: longTailSession },
+  { name: 'rejected-generation', description: 'Quick re-sends after success', fn: rejectedGeneration },
+  { name: 'large-file-reread', description: 'Same large context sent 3+ times', fn: largeFileReread },
+  { name: 'concurrent-waste', description: 'Same prompt sent 2+ times in same second', fn: concurrentWaste },
+  { name: 'low-token-density', description: 'High output with no tool use', fn: lowTokenDensity },
+  { name: 'provider-price-gap', description: 'Provider cost difference >1.5x', fn: providerPriceGap },
 ]
 
 export function listRules(): RuleEntry[] {
